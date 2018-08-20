@@ -1,0 +1,18 @@
+# Submodules
+dispersy/
+electrum/
+py-ipv8/
+pymdht/
+tribler/
+
+# Makepkg
+src/
+pkg/
+
+# Info
+.SRCINFO
+
+# Package
+*.pkg.*
+*.tar.*
+*.log
