@@ -1,7 +1,11 @@
 # Maintainer: Filipe Laíns (FFY00) <lains@archlinux.org>
 
 pkgname=tribler
-pkgver=dummy
+pkgver=v7.1.0.beta
+_dispersy=1.0
+_pymdht=12.7.0
+_electrum=3.2.2
+_pyipv8=ad919158f7b2d910bb03e6ff6aaf33338ab40c70 # Should have a tag
 pkgrel=1
 pkgdesc="Privacy enhanced BitTorrent client with P2P content discovery"
 url="https://www.tribler.org/"
@@ -17,38 +21,40 @@ optdepends=('vlc: for internal video player')
 makedepends=('python2-setuptools' 'git')
 provides=('python2-pyipv8')
 conflicts=('python2-pyipv8')
-source=("git+https://github.com/Tribler/tribler.git"
-	'git+https://github.com/Tribler/dispersy.git#tag=v1.0'
-	'git+https://github.com/devos50/pymdht.git#tag=12.7.0'
-	'git+https://github.com/spesmilo/electrum#tag=3.2.2'
-	'git+https://github.com/Tribler/py-ipv8.git#commit=4d2ead9e6a0ff02bcaa0cfd5cb94b70cd4d881ee') # Should have a tag
-sha512sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+source=('git+https://github.com/Tribler/tribler.git'
+        "dispersy-$_dispersy.tar.gz::https://github.com/Tribler/dispersy/archive/v$_dispersy.tar.gz"
+        "pymdht-$_pymdht.tar.gz::https://github.com/devos50/pymdht/archive/$_pymdht.tar.gz"
+        "electrum-$_electrum.tar.gz::https://github.com/spesmilo/electrum/archive/$_electrum.tar.gz"
+        "py-ipv8-$_pyipv8.tar.gz::https://github.com/Tribler/py-ipv8/archive/$_pyipv8.tar.gz")
+sha512sums=('SKIP'
+            'b5b0fbfedcdfab6e84c056f8eb2a36ee31dbba1f796583590ed105c5a1eb36c3327ca3b933ff827fea06dde2e537486a88e71631b25aac2b777c4119e32354ea'
+            'f17413be782f5210e29cdb84b0b37e68322169240d52e8ac64097a649a66c5be8d5c00d28043b47da300f32761956c169b659eeda868a43cba35b40f946057f1'
+            '3dfbd6531b3d778bd202b4db69b2c68a761bb021ba6d81b4b1a106d7fb69206a3f3c7ba1b5a869488ddc82f3adfda81205f1c86b1bddfd490586e966a342c6ce'
+            'SKIP')
 
 pkgver() {
   cd $pkgname
 
-  git describe --tags HEAD
+  git describe --tags HEAD | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 prepare() {
-  cd $pkgname
-
   # Setup submodules
-  git submodule init
-  git config submodule.Tribler/dispersy.url "$srcdir"/dispersy
-  git config submodule.Tribler/Core/DecentralizedTracking/pymdht.url "$srcdir"/pymdht
-  git config submodule.electrum.url "$srcdir"/electrum
-  git config submodule.py-ipv8.url "$srcdir"/py-ipv8
-  git submodule update
+  ln -sf dispersy-$_dispersy $pkgname/Tribler/disersy
+  ln -sf pymdht-$_pymdht $pkgname/Tribler/Core/DecentralizedTracking/pymdht
+  ln -sf electrum-$_electrum $pkgname/electrum
+  ln -sf py-ipv8-$_pyipv8 $pkgname/Tribler/py-ipv8
+
+  cd $pkgname
 
   # Fix tribler path
   sed -i 's|/opt/tribler|/usr/share/tribler|g' systemd/anontunnel_helper@.service
   sed -i 's|/opt/tribler|/usr/share/tribler|g' systemd/tribler.service
 
   # Fix version info
-  sed -e "s|version_id =.*|version_id = \"$pkgver\"|g"
-      -e "s|build_date =.*|build_date = \"$(date)\"|g"
-      -e "s|commit_id =.*|commit_id = \"$(git rev-parse --short HEAD)\"|g"
+  sed -e "s|version_id =.*|version_id = \"$pkgver\"|g" \
+      -e "s|build_date =.*|build_date = \"$(date)\"|g" \
+      -e "s|commit_id =.*|commit_id = \"$(git rev-parse --short HEAD)\"|g" \
         -i Tribler/Core/version.py
 }
 
