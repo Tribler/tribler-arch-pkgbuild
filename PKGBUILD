@@ -1,7 +1,7 @@
 # Maintainer: Filipe Laíns (FFY00) <lains@archlinux.org>
 
 pkgname=tribler
-pkgver=v7.1.0.beta
+pkgver=v7.1.0.beta.r10.g25639ac92
 _dispersy=1.0
 _pymdht=12.7.0
 _electrum=3.2.2
@@ -21,7 +21,7 @@ optdepends=('vlc: for internal video player')
 makedepends=('python2-setuptools' 'git')
 provides=('python2-pyipv8')
 conflicts=('python2-pyipv8')
-source=('git+https://github.com/Tribler/tribler.git'
+source=('tribler.tar.gz'
         "dispersy-$_dispersy.tar.gz::https://github.com/Tribler/dispersy/archive/v$_dispersy.tar.gz"
         "pymdht-$_pymdht.tar.gz::https://github.com/devos50/pymdht/archive/$_pymdht.tar.gz"
         "electrum-$_electrum.tar.gz::https://github.com/spesmilo/electrum/archive/$_electrum.tar.gz"
