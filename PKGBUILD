@@ -2,15 +2,15 @@
 
 pkgname=tribler
 pkgrel=1
-pkgver=7.2.0
+pkgver=7.3.0
 pkgdesc="Privacy enhanced BitTorrent client with P2P content discovery"
 url="https://www.tribler.org/"
 arch=('any')
 license=('LGPL3')
-depends=('python2-cryptography' 'python2-feedparser' 'python2-apsw' 'python2-cherrypy' 'python2-plyvel'
+depends=('python2-cryptography' 'python2-cherrypy'
 	 'python2-pillow' 'python2-pyqt5' 'qt5-svg' 'phonon-qt5-vlc' 'python2-chardet'
 	 'python2-psutil' 'python2-meliae' 'python2-decorator' 'python2-netifaces'
-	 'python2-twisted' 'libsodium' 'libtorrent-rasterbar' 'python2-m2crypto' 'python2-configobj'
+	 'python2-twisted' 'libsodium' 'libtorrent-rasterbar' 'python2-configobj'
 	 'python2-matplotlib' 'python2-service-identity' 'python2-pony'
 	 'python2-libnacl' 'python2-contextlib2' 'python2-zc.lockfile' 'python2-networkx')
 optdepends=('vlc: for internal video player' 'python2-bitcoinlib')
@@ -48,7 +48,6 @@ package() {
   install -dm 755 "$pkgdir"/usr/{bin,share/tribler}
   cp -dr --no-preserve=ownership Tribler "$pkgdir"/usr/share/tribler
   cp -dr --no-preserve=ownership TriblerGUI "$pkgdir"/usr/share/tribler
-  ln -s Tribler/Core/CacheDB/schema_sdb_v*.sql "$pkgdir"/usr/share/tribler/Tribler
 
   install -dm 644 "$pkgdir"/usr/share/{applications,pixmaps}
   install -Dm 644 Tribler/Main/Build/Ubuntu/tribler.desktop "$pkgdir"/usr/share/applications
