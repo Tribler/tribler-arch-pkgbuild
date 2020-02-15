@@ -1,28 +1,20 @@
 # Maintainer: Filipe Laíns (FFY00) <lains@archlinux.org>
 
 pkgname=tribler
+pkgver=7.4.3
 pkgrel=1
-pkgver=7.3.0
-pkgdesc="Privacy enhanced BitTorrent client with P2P content discovery"
-url="https://www.tribler.org/"
+pkgdesc='Privacy enhanced BitTorrent client with P2P content discovery'
+url='https://www.tribler.org'
 arch=('any')
 license=('LGPL3')
-depends=('python2-cryptography' 'python2-cherrypy'
-	 'python2-pillow' 'python2-pyqt5' 'qt5-svg' 'phonon-qt5-vlc' 'python2-chardet'
-	 'python2-psutil' 'python2-meliae' 'python2-decorator' 'python2-netifaces'
-	 'python2-twisted' 'libsodium' 'libtorrent-rasterbar' 'python2-configobj'
-	 'python2-matplotlib' 'python2-service-identity' 'python2-pony'
-	 'python2-libnacl' 'python2-contextlib2' 'python2-zc.lockfile' 'python2-networkx')
-optdepends=('vlc: for internal video player' 'python2-bitcoinlib')
-makedepends=('python2-setuptools' 'git')
-source=('tribler.tar.gz')
-sha512sums=('SKIP')
-
-pkgver() {
-  cd $pkgname
-
-  git describe --tags HEAD | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-}
+depends=('python-pyqt5' 'python-aiohttp' 'python-aiohttp-apispec' 'libtorrent-rasterbar'
+         'python-cryptography' 'python-libnacl' 'python-pony' 'python-lz4'
+         'python-psutil' 'python-networkx' 'python-pyqtgraph' 'python-chardet'
+         'python-cherrypy' 'python-configobj' 'python-netifaces' 'python-bitcoinlib')
+makedepends=('python-setuptools' 'git')
+#checkdepends=('python-pytest-runner')
+source=("https://github.com/Tribler/tribler/releases/download/v$pkgver/Tribler-v$pkgver.tar.xz")
+sha512sums=('935a85ec364acd491869d5cc344169671ab8293eea56330841828fc523a709ec2b303a0feb0821fc59cba73260ba778a5363c9c1f3efffa587b07b8f8309b119')
 
 prepare() {
   cd $pkgname
@@ -30,26 +22,38 @@ prepare() {
   # Fix tribler path
   sed -i 's|/opt/tribler|/usr/share/tribler|g' systemd/anontunnel_helper@.service
   sed -i 's|/opt/tribler|/usr/share/tribler|g' systemd/tribler.service
+
+  # Fix version info
+  sed -e "s|version_id =.*|version_id = \"${pkgver%_*}\"|g" \
+      -e "s|build_date =.*|build_date = \"$SOURCE_DATE_EPOCH\"|g" \
+        -i Tribler/Core/version.py
 }
 
 build () {
   cd $pkgname
 
-  python2 setup.py build
+  python setup.py build
 }
+
+#check() {
+#  cd $pkgname
+#
+#  python setup.py test
+#}
 
 package() {
   cd $pkgname
 
   # Install python modules
-  python2 setup.py install --root="$pkgdir" --optimize=1 --skip-build
+  python setup.py install --root="$pkgdir" --optimize=1
 
   # Install binary files/assets
   install -dm 755 "$pkgdir"/usr/{bin,share/tribler}
   cp -dr --no-preserve=ownership Tribler "$pkgdir"/usr/share/tribler
   cp -dr --no-preserve=ownership TriblerGUI "$pkgdir"/usr/share/tribler
+  ln -s Tribler/Core/CacheDB/schema_sdb_v*.sql "$pkgdir"/usr/share/tribler/Tribler
 
-  install -dm 644 "$pkgdir"/usr/share/{applications,pixmaps}
+  install -dm 755 "$pkgdir"/usr/share/{applications,pixmaps}
   install -Dm 644 Tribler/Main/Build/Ubuntu/tribler.desktop "$pkgdir"/usr/share/applications
   install -Dm 644 Tribler/Main/Build/Ubuntu/tribler.xpm "$pkgdir"/usr/share/pixmaps
   install -Dm 644 Tribler/Main/Build/Ubuntu/tribler_big.xpm "$pkgdir"/usr/share/pixmaps
@@ -61,7 +65,8 @@ package() {
   cp -dr --no-preserve=ownership twisted "$pkgdir"/usr/share/tribler
 
   # Remove test folders
-  find "$pkgdir" -type d -name "test" -name "tests" -exec rm -rf {} \;
+  rm -rf "$pkgdir"/usr/lib/python*/site-packages/Tribler/Test
+  rm -rf "$pkgdir"/usr/share/tribler/Tribler/Test
 
   # Install systemd files
   install -Dm 644 systemd/anontunnel_helper@.service "$pkgdir"/usr/lib/systemd/system/anontunnel_helper@.service
